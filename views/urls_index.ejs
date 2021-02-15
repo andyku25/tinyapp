@@ -15,10 +15,10 @@
         <tr scope="col">Long URL</tr>
       </thead>
       <tbody>
-        <% for (let url of urls) { %>
+        <% for (let url in urls) { %>
           <tr>
-            <td><% url %></td>
-            <td><% urls[url] %></td>
+            <td><%= url %></td>
+            <td><%= urls[url] %></td>
           </tr>
           <% } %>
       </tbody>
