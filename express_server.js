@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
+// Tells express to use ejs as its templating language
+app.set("view engine", "ejs");
+
 // infile "database" setup
 const urlDatabase = {
   "b2xVn2": "http://lighthouselabs.ca",
