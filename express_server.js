@@ -1,7 +1,10 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const app = express();
 const PORT = 8080;
+
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const express = require("express");
+
+const app = express();
 
 // Tells express to use ejs as its templating language/ configurations
 app.set("view engine", "ejs");
@@ -14,6 +17,7 @@ const urlDatabase = {
 
 // Converts all buffer data into sting in human readable form
 app.use(bodyParser.urlencoded({extended: true})); // before all routes
+app.use(cookieParser());
 
 // root/home page
 app.get("/", (req, res) => {
@@ -22,13 +26,19 @@ app.get("/", (req, res) => {
 
 // Display the URLS
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
 // Create new TinyURL
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 // POST handler for urls/
@@ -41,6 +51,7 @@ app.post("/urls", (req, res) => {
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
+    username: req.cookies["username"],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]
   };
@@ -71,15 +82,23 @@ app.get("/u/:shortURL", (req, res, next) => {
   res.redirect(longURL);
 });
 
-// View JSON details from the "url database"
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+// LOGIN POST handler
+app.post("/login", (req, res) => {
+
+  res.cookie("username", req.body.username)
+  res.redirect("/urls");
 });
 
-// Hello view test code
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// TEST CODE?
+// // View JSON details from the "url database"
+// app.get("/urls.json", (req, res) => {
+//   res.json(urlDatabase);
+// });
+
+// // Hello view test code
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 // Activate server to listen for requests
 app.listen(PORT, () => {
