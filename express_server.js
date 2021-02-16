@@ -33,11 +33,9 @@ app.get("/urls/new", (req, res) => {
 
 // POST handler for urls/
 app.post("/urls", (req, res) => {
-  console.log(req.body);
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
-  console.log(urlDatabase);
-  res.send("ok");
+  res.redirect(`/urls/${shortURL}`);
 });
 
 // View the selected short URL details
@@ -47,6 +45,15 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL]
   };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res, next) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  if (longURL === undefined) {
+    res.status(404);
+    return res.render("error404");
+  }
+  res.redirect(longURL);
 });
 
 // View JSON details from the "url database"
