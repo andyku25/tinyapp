@@ -31,6 +31,15 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// POST handler for urls/
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  console.log(urlDatabase);
+  res.send("ok");
+});
+
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
@@ -54,3 +63,20 @@ app.get("/hello", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app is listening on port ${PORT}`);
 });
+
+
+// HELPERS
+// radix base 36
+function generateRandomString() {
+  let output = "";
+  for (let i = 0; i < 6; i++) {
+    let randomChar = Math.floor(Math.random() * 1000) % 36;
+    if (randomChar < 10 ) {
+      output += randomChar.toString(36);
+    } else {
+      output += Math.round((Math.random() * 10)) % 2 === 0 ? randomChar.toString(36).toUpperCase() : randomChar.toString(36);
+    }
+  }
+  return output;
+};
+
