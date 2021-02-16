@@ -47,12 +47,21 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// View the selected short URL details
+// DELETE btn post method redirect to index page "/urls"
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
+// UPDATE the short URL details
+app.post("/urls/:shortURL", (req, res) => {
+  
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+
+  res.redirect("/urls");
+});
+
+// View the selected short URL details
 app.get("/u/:shortURL", (req, res, next) => {
   const longURL = urlDatabase[req.params.shortURL];
   if (longURL === undefined) {
