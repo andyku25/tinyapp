@@ -73,7 +73,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 // View the selected short URL details
-app.get("/u/:shortURL", (req, res, next) => {
+app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   if (longURL === undefined) {
     res.status(404);
@@ -85,7 +85,14 @@ app.get("/u/:shortURL", (req, res, next) => {
 // LOGIN POST handler
 app.post("/login", (req, res) => {
 
-  res.cookie("username", req.body.username)
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
+// LOGOUT POST handler
+app.post("/logout", (req, res) => {
+  console.log(req.cookies.username);
+  res.clearCookie("username");
   res.redirect("/urls");
 });
 
@@ -108,11 +115,11 @@ app.listen(PORT, () => {
 
 // HELPERS
 // radix base 36
-function generateRandomString() {
+const generateRandomString = () => {
   let output = "";
   for (let i = 0; i < 6; i++) {
     let randomChar = Math.floor(Math.random() * 1000) % 36;
-    if (randomChar < 10 ) {
+    if (randomChar < 10) {
       output += randomChar.toString(36);
     } else {
       output += Math.round((Math.random() * 10)) % 2 === 0 ? randomChar.toString(36).toUpperCase() : randomChar.toString(36);
@@ -120,4 +127,3 @@ function generateRandomString() {
   }
   return output;
 };
-
