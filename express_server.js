@@ -78,12 +78,25 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email
   const password = req.body.password
-  users[id] = {
-    id,
-    email,
-    password
-  };
+  
+  // check new user details
+  if (email === "") {
+    res.status(400).send("Error 400: Email field was blank");
+  } else if (password === "") {
+    res.status(400).send("Error 400: Password field was blank");
+  } else if (emailExists(email, users)) {
+    res.status(400).send("Error 400: Email has already been registered.");
+  } else {
+    users[id] = {
+      id,
+      email,
+      password
+    };
+  }
+  
+
   console.log(users);
+
   res.cookie("user_id", users[id].id)
 
   res.redirect("/urls");
@@ -166,3 +179,16 @@ const generateRandomString = () => {
   }
   return output;
 };
+
+// Check email account if they already exist list
+const emailExists = (value, usersDb) => {
+  const emailList = [];
+  let keys = Object.keys(usersDb);
+  for (const key of keys) {
+    if (usersDb[key].email === value) {
+      return true;
+    }
+  }
+  return false;
+};
+
