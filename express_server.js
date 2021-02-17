@@ -84,14 +84,12 @@ app.get("/u/:shortURL", (req, res) => {
 
 // LOGIN POST handler
 app.post("/login", (req, res) => {
-
   res.cookie("username", req.body.username);
   res.redirect("/urls");
 });
 
 // LOGOUT POST handler
 app.post("/logout", (req, res) => {
-  console.log(req.cookies.username);
   res.clearCookie("username");
   res.redirect("/urls");
 });
