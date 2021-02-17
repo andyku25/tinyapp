@@ -9,11 +9,14 @@ const app = express();
 // Tells express to use ejs as its templating language/ configurations
 app.set("view engine", "ejs");
 
-// infile "database" setup
+// "DATABASES"
 const urlDatabase = {
   "b2xVn2": "http://lighthouselabs.ca",
   "9sm5xK": "http://google.com"
 };
+
+const users = {};
+
 
 // Converts all buffer data into sting in human readable form
 app.use(bodyParser.urlencoded({extended: true})); // before all routes
@@ -27,8 +30,9 @@ app.get("/", (req, res) => {
 // Display the URLS
 app.get("/urls", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
-    urls: urlDatabase
+    user_id: req.cookies["user_id"],
+    users,
+    urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
 });
@@ -36,7 +40,8 @@ app.get("/urls", (req, res) => {
 // Create new TinyURL
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user_id: req.cookies["user_id"],
+    users
   };
   res.render("urls_new", templateVars);
 });
@@ -51,19 +56,37 @@ app.post("/urls", (req, res) => {
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user_id: req.cookies["user_id"],
+    users,
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL]
+    longURL: urlDatabase[req.params.shortURL],
   };
   res.render("urls_show", templateVars);
 });
 
-// Register form
+// Register get handler
 app.get("/register", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user_id: req.cookies["user_id"],
+    users
   };
   res.render("register", templateVars);
+});
+
+// Redister Post handler
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email
+  const password = req.body.password
+  users[id] = {
+    id,
+    email,
+    password
+  };
+  console.log(users);
+  res.cookie("user_id", users[id].id)
+
+  res.redirect("/urls");
 });
 
 // DELETE btn post method redirect to index page "/urls"
@@ -92,13 +115,13 @@ app.get("/u/:shortURL", (req, res) => {
 
 // LOGIN POST handler
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  res.cookie("user_id", req.body.user_id);
   res.redirect("/urls");
 });
 
 // LOGOUT POST handler
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -113,6 +136,15 @@ app.post("/logout", (req, res) => {
 // app.get("/hello", (req, res) => {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
+
+// ERROR 404 Handler
+app.use((req, res, next) => {
+  templateVars = {
+    user_id: req.cookies.user_id,
+    users
+  }
+  res.status(404).render("error404", templateVars);
+});
 
 // Activate server to listen for requests
 app.listen(PORT, () => {
