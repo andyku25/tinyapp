@@ -8,12 +8,16 @@
   </head>
   <body>
     <%- include("partials/_header") %>
-    <div class="">
-      <form action="/register" method="POST">
-        <label for="email">Email: </label>
-        <input type="email" name="email" placeholder="email@name.domain">
-        <label for="password">Password: </label>
-        <input type="password" name="password" placeholder="Enter your password">
+    <div class="form-group mx-auto w-75">
+      <form action="/register" method="POST" class="mx-auto">
+        <div class="my-2">
+          <label for="email">Email: </label>
+          <input class="form-control" type="email" name="email" placeholder="Enter your email">
+        </div>
+        <div class="mb-2">
+          <label for="password">Password: </label>
+          <input class="form-control" type="password" name="password" placeholder="Enter your password">
+        </div>
         <button class="btn btn-primary" type="submit">Register</button>
       </form>
     </div>
