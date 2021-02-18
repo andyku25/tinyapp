@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 // Display the URLS
 app.get("/urls", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    userID: req.cookies["userID"],
     users,
     urls: urlDatabase,
   };
@@ -41,7 +41,7 @@ app.get("/urls", (req, res) => {
 // Create new TinyURL
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    userID: req.cookies["userID"],
     users
   };
   res.render("urls_new", templateVars);
@@ -57,7 +57,7 @@ app.post("/urls", (req, res) => {
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    userID: req.cookies["userID"],
     users,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
@@ -68,7 +68,7 @@ app.get("/urls/:shortURL", (req, res) => {
 // Register get handler
 app.get("/register", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    userID: req.cookies["userID"],
     users
   };
   res.render("register", templateVars);
@@ -94,7 +94,7 @@ app.post("/register", (req, res) => {
     };
     
     console.log(users);
-    res.cookie("user_id", users[id].id);
+    res.cookie("userID", users[id].id);
     res.redirect("/urls");
   }
 });
@@ -127,7 +127,7 @@ app.get("/u/:shortURL", (req, res) => {
 // LOGIN GET handler
 app.get("/login", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    userID: req.cookies["userID"],
     users
   };
   res.render("login", templateVars);
@@ -139,17 +139,17 @@ app.post("/login", (req, res) => {
   const currentUser = validateLogin(email, password, users);
 
   console.log(currentUser);
-  if (!currentUser.user_id) {
+  if (!currentUser.userID) {
     res.status(403).send(`There was an error with your ${currentUser.error}`);
   } else {
-    res.cookie("user_id", currentUser.user_id);
+    res.cookie("userID", currentUser.userID);
     res.redirect("/urls");
   }
 });
 
 // LOGOUT POST handler
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  res.clearCookie("userID");
   res.redirect("/urls");
 });
 
@@ -168,7 +168,7 @@ app.post("/logout", (req, res) => {
 // ERROR 404 Handler
 app.use((req, res, next) => {
   templateVars = {
-    user_id: req.cookies.user_id,
+    userID: req.cookies.userID,
     users
   }
   res.status(404).render("error404", templateVars);

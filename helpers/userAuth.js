@@ -38,12 +38,12 @@ const validateLogin = (email, password, usersDb) => {
       console.log(usersDb[key])
       const currentUser = usersDb[key].id;
       if (usersDb[key].password === password) {
-        return { user_id: currentUser, error:null };
+        return { userID: currentUser, error:null };
       }
-      return { user_id: null, error: "password" };
+      return { userID: null, error: "password" };
     }
   }
-  return { user_id: null, error: "email"};
+  return { userID: null, error: "email"};
 };
 
 module.exports = {

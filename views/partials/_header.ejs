@@ -7,10 +7,10 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav mr-auto">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <a class="nav-item nav-link" href= <%= (userID) ? "/urls/new" : "/login" %>>Create New URL</a>
       </div>
-      <% if(user_id) { %>
-        <div style="margin-right: 1em;">Login in As: <%= users[user_id].email %></div>
+      <% if(userID) { %>
+        <div style="margin-right: 1em;">Login in As: <%= users[userID].email %></div>
         <form action="/logout" method="POST" class="form-inline">
           <button type="submit" class="btn btn-outline-dark">Logout</button>
         </form>
