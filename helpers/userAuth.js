@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 // HELPERS
 // radix base 36
 const generateRandomString = () => {
@@ -37,7 +38,8 @@ const validateLogin = (email, password, usersDb) => {
     if (usersDb[key].email === email) {
       console.log(usersDb[key])
       const currentUser = usersDb[key].id;
-      if (usersDb[key].password === password) {
+      // if (usersDb[key].password === password) {
+      if (bcrypt.compareSync(password, usersDb[key].password)) {
         return { userID: currentUser, error:null };
       }
       return { userID: null, error: "password" };
