@@ -3,6 +3,7 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const express = require("express");
+const { generateRandomString, validateRegistration, validateLogin } = require("./helpers/userAuth")
 
 const app = express();
 
@@ -78,26 +79,24 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const { email, password } = req.body;
   
+  const emailCheck = validateRegistration(email, password, users);  
+
   // check new user details
-  if (email === "") {
-    res.status(400).send("Error 400: Email field was blank");
-  } else if (password === "") {
-    res.status(400).send("Error 400: Password field was blank");
-  } else if (emailExists(email, users)) {
-    res.status(400).send("Error 400: Email has already been registered.");
+  if (!emailCheck.email) {
+    res.status(400).send(`Error 400: ${emailCheck.error} field was blank`);
+  } else if (emailCheck.email === "duplicate") {
+    res.status(400).send(`Error 400: ${emailCheck.error} has already been registered.`);
   } else {
     users[id] = {
       id,
       email,
       password
     };
+    
+    console.log(users);
+    res.cookie("user_id", users[id].id);
+    res.redirect("/urls");
   }
-
-  console.log(users);
-
-  res.cookie("user_id", users[id].id)
-
-  res.redirect("/urls");
 });
 
 // DELETE btn post method redirect to index page "/urls"
@@ -120,8 +119,9 @@ app.get("/u/:shortURL", (req, res) => {
   if (longURL === undefined) {
     res.status(404);
     return res.render("error404");
+  } else {
+    res.redirect(longURL);
   }
-  res.redirect(longURL);
 });
 
 // LOGIN GET handler
@@ -136,14 +136,15 @@ app.get("/login", (req, res) => {
 // LOGIN POST handler
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const currentUser = validateUser(email, password, users);
+  const currentUser = validateLogin(email, password, users);
 
   console.log(currentUser);
   if (!currentUser.user_id) {
-    res.send(`There was an error with your ${currentUser.error}`);
+    res.status(403).send(`There was an error with your ${currentUser.error}`);
+  } else {
+    res.cookie("user_id", currentUser.user_id);
+    res.redirect("/urls");
   }
-  res.cookie("user_id", currentUser.user_id);
-  res.redirect("/urls");
 });
 
 // LOGOUT POST handler
@@ -178,45 +179,3 @@ app.listen(PORT, () => {
   console.log(`Example app is listening on port ${PORT}`);
 });
 
-
-// HELPERS
-// radix base 36
-const generateRandomString = () => {
-  let output = "";
-  for (let i = 0; i < 6; i++) {
-    let randomChar = Math.floor(Math.random() * 1000) % 36;
-    if (randomChar < 10) {
-      output += randomChar.toString(36);
-    } else {
-      output += Math.round((Math.random() * 10)) % 2 === 0 ? randomChar.toString(36).toUpperCase() : randomChar.toString(36);
-    }
-  }
-  return output;
-};
-
-// Check email account if they already exist list
-const emailExists = (value, usersDb) => {
-  let keys = Object.keys(usersDb);
-  for (const key of keys) {
-    if (usersDb[key].email === value) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// Check if login credentials are validateUser. returns object { user_id, errorMsg }
-const validateUser = (email, password, usersDb) => {
-  let keys = Object.keys(usersDb);
-  for (const key of keys) {
-    if (usersDb[key].email === email) {
-      console.log(usersDb[key])
-      const currentUser = usersDb[key].id;
-      if (usersDb[key].password === password) {
-        return { user_id: currentUser, error:null };
-      }
-      return { user_id: null, error: "password" };
-    }
-  }
-  return { user_id: null, error: "email"};
-};
