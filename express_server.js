@@ -1,7 +1,8 @@
 const PORT = 8080;
 
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { generateRandomString, validateRegistration, validateLogin } = require("./helpers/userAuth");
@@ -29,7 +30,24 @@ const users = {
 
 // Converts all buffer data into sting in human readable form
 app.use(bodyParser.urlencoded({extended: true})); // before all routes
-app.use(cookieParser());
+// app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['7f69fa85-caec-4xcc-acd7-eeb2ccb368d5', 's13b4b3m-41c8-47d3-93f6-8836do3cd8eb']
+}))
+
+
+// Create middleware function
+const getCurrentUser = (req, res, next) => {
+  console.log(req)
+  const userID = req.session["userID"];
+  const loggedInUser = users[userID];
+  req.currentUser = loggedInUser;
+  next();
+};
+
+// DO NOT USE THIS - req is not defined
+// app.use(getCurrentUser());
 
 // root/home page
 app.get("/", (req, res) => {
@@ -39,7 +57,7 @@ app.get("/", (req, res) => {
 // Register get handler
 app.get("/register", (req, res) => {
   const templateVars = {
-    userID: req.cookies["userID"],
+    userID: req.session["userID"],
     users
   };
   res.render("register", templateVars);
@@ -66,7 +84,7 @@ app.post("/register", (req, res) => {
     };
     
     console.log(users);
-    res.cookie("userID", users[id].id);
+    res.session.userID = users[id].id;
     res.redirect("/urls");
   }
 });
@@ -74,7 +92,7 @@ app.post("/register", (req, res) => {
 // LOGIN GET handler
 app.get("/login", (req, res) => {
   const templateVars = {
-    userID: req.cookies["userID"],
+    userID: req.session["userID"],
     users
   };
   res.render("login", templateVars);
@@ -90,7 +108,7 @@ app.post("/login", (req, res) => {
   if (!currentUser.userID) {
     res.status(403).send(`There was an error with your ${currentUser.error}`);
   } else {
-    res.cookie("userID", currentUser.userID);
+    req.session.userID = currentUser.userID;
     res.redirect("/urls");
   }
 });
@@ -103,7 +121,7 @@ app.post("/logout", (req, res) => {
 
 // Display the URLS
 app.get("/urls", (req, res) => {
-  const userID = req.cookies["userID"];
+  const userID = req.session["userID"];
   const templateVars = {
     userID,
     users,
@@ -122,7 +140,7 @@ app.get("/urls", (req, res) => {
 // Create new TinyURL
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    userID: req.cookies["userID"],
+    userID: req.session["userID"],
     users
   };
   res.render("urls_new", templateVars);
@@ -131,13 +149,13 @@ app.get("/urls/new", (req, res) => {
 // POST handler for urls/
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["userID"] };
+  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session["userID"] };
   res.redirect(`/urls`);
 });
 
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
-  const currentUser = req.cookies["userID"];
+  const currentUser = req.session["userID"];
   const shortURL = req.params.shortURL;
   if (urlDatabase[shortURL].userID === currentUser) {
     const templateVars = {
@@ -155,10 +173,10 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // UPDATE the short URL details
 app.post("/urls/:shortURL", (req, res) => {
-  const currentUser = req.cookies["userID"];
+  const currentUser = req.session["userID"];
   const shortURL = req.params.shortURL
   if (urlDatabase[shortURL].userID === currentUser) {
-    urlDatabase[shortURL] =  { longURL:req.body.longURL, userID:req.cookies["userID"] };
+    urlDatabase[shortURL] =  { longURL:req.body.longURL, userID:req.session["userID"] };
   }
   console.log(urlDatabase);
   res.redirect("/urls");
@@ -167,7 +185,7 @@ app.post("/urls/:shortURL", (req, res) => {
 
 // DELETE btn post method redirect to index page "/urls"
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const currentUser = req.cookies["userID"];
+  const currentUser = req.session["userID"];
   console.log(currentUser);
   if (urlDatabase[req.params.shortURL].userID === currentUser) {
     delete urlDatabase[req.params.shortURL];
@@ -202,7 +220,7 @@ app.get("/u/:shortURL", (req, res) => {
 // ERROR 404 Handler
 app.use((req, res, next) => {
   templateVars = {
-    userID: req.cookies.userID,
+    userID: req.session.userID,
     users
   }
   res.status(404).render("error404", templateVars);
