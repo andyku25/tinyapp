@@ -12,8 +12,8 @@ app.set("view engine", "ejs");
 
 // "DATABASES"
 const urlDatabase = {
-  "b2xVn2": "http://lighthouselabs.ca",
-  "9sm5xK": "http://google.com"
+  "b2xVn2": { longURL: "http://lighthouselabs.ca", userID: "aJ48lW" },
+  "9sm5xK": { longURL: "http://google.com", userID: "aJ48lW" }
 };
 
 const users = {};
@@ -59,10 +59,19 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     userID: req.cookies["userID"],
     users,
+    urls: urlDatabase,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
   };
   res.render("urls_show", templateVars);
+});
+
+// UPDATE the short URL details
+app.post("/urls/:shortURL", (req, res) => {
+  
+  urlDatabase[req.params.shortURL] =  { longURL:req.body.longURL, userID:req.cookies["userID"] };
+  console.log(urlDatabase);
+  res.redirect("/urls");
 });
 
 // Register get handler
@@ -105,17 +114,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// UPDATE the short URL details
-app.post("/urls/:shortURL", (req, res) => {
-  
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-
-  res.redirect("/urls");
-});
 
 // View the selected short URL details
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   if (longURL === undefined) {
     res.status(404);
     return res.render("error404");
