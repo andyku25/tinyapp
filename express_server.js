@@ -67,21 +67,28 @@ app.post("/urls", (req, res) => {
 
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = {
-    userID: req.cookies["userID"],
-    users,
-    urls: urlDatabase,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
-  };
-  res.render("urls_show", templateVars);
+  const currentUser = req.cookies["userID"];
+  const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL].userID === currentUser) {
+    const templateVars = {
+      userID: currentUser,
+      users,
+      urls: urlDatabase,
+      shortURL,
+      longURL: urlDatabase[shortURL],
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.redirect("/urls");
+  }
 });
 
 // UPDATE the short URL details
 app.post("/urls/:shortURL", (req, res) => {
   const currentUser = req.cookies["userID"];
-  if (urlDatabase[req.params.shortURL].userID === currentUser) {
-    urlDatabase[req.params.shortURL] =  { longURL:req.body.longURL, userID:req.cookies["userID"] };
+  const shortURL = req.params.shortURL
+  if (urlDatabase[shortURL].userID === currentUser) {
+    urlDatabase[shortURL] =  { longURL:req.body.longURL, userID:req.cookies["userID"] };
   }
   console.log(urlDatabase);
   res.redirect("/urls");
