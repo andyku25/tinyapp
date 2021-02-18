@@ -73,11 +73,10 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
-// Redister Post handler
+// Register Post handler
 app.post("/register", (req, res) => {
   const id = generateRandomString();
-  const email = req.body.email
-  const password = req.body.password
+  const { email, password } = req.body;
   
   // check new user details
   if (email === "") {
@@ -93,7 +92,6 @@ app.post("/register", (req, res) => {
       password
     };
   }
-  
 
   console.log(users);
 
@@ -126,9 +124,25 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+// LOGIN GET handler
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user_id: req.cookies["user_id"],
+    users
+  };
+  res.render("login", templateVars);
+});
+
 // LOGIN POST handler
 app.post("/login", (req, res) => {
-  res.cookie("user_id", req.body.user_id);
+  const { email, password } = req.body;
+  const currentUser = validateUser(email, password, users);
+
+  console.log(currentUser);
+  if (!currentUser.user_id) {
+    res.send(`There was an error with your ${currentUser.error}`);
+  }
+  res.cookie("user_id", currentUser.user_id);
   res.redirect("/urls");
 });
 
@@ -182,7 +196,6 @@ const generateRandomString = () => {
 
 // Check email account if they already exist list
 const emailExists = (value, usersDb) => {
-  const emailList = [];
   let keys = Object.keys(usersDb);
   for (const key of keys) {
     if (usersDb[key].email === value) {
@@ -192,3 +205,18 @@ const emailExists = (value, usersDb) => {
   return false;
 };
 
+// Check if login credentials are validateUser. returns object { user_id, errorMsg }
+const validateUser = (email, password, usersDb) => {
+  let keys = Object.keys(usersDb);
+  for (const key of keys) {
+    if (usersDb[key].email === email) {
+      console.log(usersDb[key])
+      const currentUser = usersDb[key].id;
+      if (usersDb[key].password === password) {
+        return { user_id: currentUser, error:null };
+      }
+      return { user_id: null, error: "password" };
+    }
+  }
+  return { user_id: null, error: "email"};
+};

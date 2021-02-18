@@ -15,10 +15,20 @@
           <button type="submit" class="btn btn-outline-dark">Logout</button>
         </form>
       <% } else { %>
-        <form action="/login" method="POST" class="form-inline">
+        <div class="btn-group">
+          <button class="btn btn-dark downdrop-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Account
+          </button>
+          <div class="dropdown-menu dropdown-menu-right">
+            <!-- <h6 class="dropdown-header">Account</h6> -->
+            <a href="/login" class="dropdown-item">Login</a>
+            <a href="/register" class="dropdown-item">Register</a>
+          </div>
+        </div>
+        <!-- <form action="/login" method="POST" class="form-inline">
           <input class="form-control" type="text" name="user_id" placeholder="User_ID" style="margin-right: 1em;">
           <button type="submit" class="btn btn-outline-dark">Login</button>
-        </form>
+        </form> -->
       <% } %>
     </div>
   </nav>
