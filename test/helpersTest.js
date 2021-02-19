@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const { getUserByEmail }  = require("../helpers");
+const { getUserByEmail, validateNewUser, validateLogin, urlsForUser }  = require("../helpers");
 
 const testUsers = {
   "userRandomID": {
@@ -14,6 +14,11 @@ const testUsers = {
   }
 };
 
+const testUrls = {
+  "urlID1": { longURL: "http://lighthouselab.ca", userID: "userRandomID"},
+  "urlID2": { longURL: "http://reddit.com", userID: "userRandom2ID"}
+};
+
 describe('getUserByEmail', function() {
   it('should return a user with valid email', function() {
     const user = getUserByEmail("user@example.com", testUsers)
@@ -26,5 +31,18 @@ describe('getUserByEmail', function() {
     const expectedOutput = undefined;
     // Write your assert statement here
     assert.isUndefined(user, expectedOutput);
+  });
+});
+
+describe("urlsForUser", () => {
+  it("should return users object", () => {
+    const urls = urlsForUser("userRandom2ID", testUrls);
+    const expectedOutput = { "urlID2": { longURL: "http://reddit.com", userID: "userRandom2ID" }};
+    assert.deepEqual(urls, expectedOutput);
+  });
+  it("should return an empty object when the userID has no urls in database", () => {
+    const urls = urlsForUser("emptyUserID", testUrls);
+    const expectedOutput = {};
+    assert.deepEqual(urls, expectedOutput);
   });
 });

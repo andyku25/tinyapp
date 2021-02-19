@@ -5,9 +5,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { validateRegistration, validateLogin } = require("./helpers/userAuth");
-const { getUserByEmail, generateRandomString } = require("./helpers");
-// const urlsForUser = require("./helpers/urlsForUser");
+const { generateRandomString, validateNewUser, validateLogin, urlsForUser } = require("./helpers");
 
 
 const testDbPw = "qwerty";
@@ -28,15 +26,13 @@ const users = {
   "aJ48lW": { id: "aJ48lW", email:"test@test.com", password: testHashedPw } 
 };
 
-
 // Converts all buffer data into sting in human readable form
-app.use(bodyParser.urlencoded({extended: true})); // before all routes
+app.use(bodyParser.urlencoded({extended: true})); // before all routes(get/post)
 // app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['7f69fa85-caec-4xcc-acd7-eeb2ccb368d5', 's13b4b3m-41c8-47d3-93f6-8836do3cd8eb']
 }))
-
 
 // Create middleware function - DO NOT USE THIS - req is not defined when called. - revisit if time remains
 // const getCurrentUser = (req, res, next) => {
@@ -61,29 +57,21 @@ app.get("/register", (req, res) => {
 
 // Register Post handler
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
   const { email, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  const newUser = validateNewUser(email, password, users);
   
-  const emailCheck = validateRegistration(email, password, users);  
-
-  // check new user details
-  if (!emailCheck.email) {
-    res.status(400).send(`Error 400: ${emailCheck.error} field was blank`);
-  } else if (emailCheck.email === "duplicate") {
-    res.status(400).send(`Error 400: ${emailCheck.error} has already been registered.`);
+  if (!newUser.id) {
+    return res.status(400).send(`Error 400: ${newUser.error}`);
   } else {
-    users[id] = {
-      id,
-      email,
-      password: hashedPassword
-    };
-    
-    console.log(users);
-    console.log(users[id]);
-    req.session.userID = users[id].id;
-    res.redirect("/urls");
+    users[newUser.id] = {
+      id: newUser.id,
+      email: newUser.email,
+      password: newUser.password
+    }
   }
+  // console.log(users);
+  req.session.userID = users[newUser.id].id;
+  res.redirect("/urls");
 });
 
 // LOGIN GET handler
@@ -98,21 +86,18 @@ app.get("/login", (req, res) => {
 // LOGIN POST handler
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-
   const currentUser = validateLogin(email, password, users);
 
-  console.log(currentUser);
-  if (!currentUser.userID) {
-    res.status(403).send(`There was an error with your ${currentUser.error}`);
-  } else {
-    req.session.userID = currentUser.userID;
-    res.redirect("/urls");
+  if (!currentUser.id) {
+    return res.status(403).send(`Error 403: ${currentUser.error}`);
   }
+  req.session.userID = currentUser.id;
+  res.redirect("/urls");
 });
 
 // LOGOUT POST handler
 app.post("/logout", (req, res) => {
-  req.session.userID = null;
+  req.session = null;
   res.redirect("/urls");
 });
 
@@ -122,12 +107,11 @@ app.get("/urls", (req, res) => {
   const templateVars = {
     userID,
     users,
-    urls: urlDatabase,
   };
   if (!userID) {
-    
+    templateVars.urls = {};
   } else {
-    const usersUrls = urlsForUser(userID)
+    const usersUrls = urlsForUser(userID, urlDatabase);
     console.log(usersUrls);
     templateVars.urls = usersUrls;
   };
@@ -239,14 +223,3 @@ app.listen(PORT, () => {
 });
 
 
-const urlsForUser = (id) => {
-  const usersUrlDb = {};
-  const keys = Object.keys(urlDatabase);
-  for (const key of keys) {      
-    console.log(key);
-    if (urlDatabase[key].userID === id) {
-      usersUrlDb[key] = urlDatabase[key];
-    }
-  }
-  return usersUrlDb;
-};
