@@ -120,8 +120,12 @@ app.get("/urls", (req, res) => {
 
 // Create new TinyURL
 app.get("/urls/new", (req, res) => {
+  const currentUser = req.session.userID;
+  if (!currentUser) {
+    return res.redirect("/login");
+  }
   const templateVars = {
-    userID: req.session["userID"],
+    userID: currentUser,
     users
   };
   res.render("urls_new", templateVars);
@@ -129,14 +133,21 @@ app.get("/urls/new", (req, res) => {
 
 // POST handler for urls/
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.session["userID"] };
+  const currentUser = req.session.userID;
+  if (!currentUser) {
+    return res.status(500).send("Error 500: Bad Request! Please login!");
+  }
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = { longURL: req.body.longURL, userID: currentUser };
   res.redirect(`/urls`);
 });
 
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
   const currentUser = req.session["userID"];
+  if (!currentUser) {
+    return res.status(404).send("Error 404: Page not found! Please try logging in.")
+  }
   const shortURL = req.params.shortURL;
   if (urlDatabase[shortURL].userID === currentUser) {
     const templateVars = {
@@ -148,16 +159,21 @@ app.get("/urls/:shortURL", (req, res) => {
     };
     res.render("urls_show", templateVars);
   } else {
-    res.redirect("/urls");
+    return res.status(403).send("Error 403: Forbidden Request!");
   }
 });
 
 // UPDATE the short URL details
 app.post("/urls/:shortURL", (req, res) => {
   const currentUser = req.session["userID"];
+  if (!currentUser) {
+    return res.status(403).send("Error 403: Forbidden");
+  }
   const shortURL = req.params.shortURL
   if (urlDatabase[shortURL].userID === currentUser) {
-    urlDatabase[shortURL] =  { longURL:req.body.longURL, userID:currentUser };
+    urlDatabase[shortURL] =  { longURL: req.body.longURL, userID: currentUser };
+  } else {
+    return res.status(404).send("Error 404: Page not found")
   }
   console.log(urlDatabase);
   res.redirect("/urls");
@@ -167,9 +183,13 @@ app.post("/urls/:shortURL", (req, res) => {
 // DELETE btn post method redirect to index page "/urls"
 app.post("/urls/:shortURL/delete", (req, res) => {
   const currentUser = req.session["userID"];
-  console.log(currentUser);
+  if (!currentUser) {
+    return res.status(403).send("Error 403: Forbidden")
+  }
   if (urlDatabase[req.params.shortURL].userID === currentUser) {
     delete urlDatabase[req.params.shortURL];
+  } else {
+    return res.status(403).send("Error 403: Forbidden")
   }
   console.log(urlDatabase)
   res.redirect("/urls");
