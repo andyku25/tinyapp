@@ -4,7 +4,7 @@ const getUserByEmail = (email, usersDb) => {
   const keys = Object.keys(usersDb);
 
   for (const key of keys) {
-    if(usersDb[key].email === email) {
+    if (usersDb[key].email === email) {
       const user = usersDb[key].id;
       return user;
     }
@@ -33,7 +33,7 @@ const validateNewUser = (email, password, userDb) => {
   } else {
     return { id: null, error: "User Email already exists"};
   }
-}
+};
 
 // Check if login credentials are validateUser. returns object { user_id, errorMsg }
 const validateLogin = (email, password, usersDb) => {
@@ -45,7 +45,7 @@ const validateLogin = (email, password, usersDb) => {
     if (bcrypt.compareSync(password, user.password)) {
       return { id: user.id, email: user.email, password: user.password };
     }
-    return { id: null, error: "Incorrect password. Please check your password and try again." }
+    return { id: null, error: "Incorrect password. Please check your password and try again." };
   }
   return { id: null, error: "Email not found. Please try again with a different email" };
 };
@@ -67,7 +67,7 @@ const generateRandomString = () => {
 const urlsForUser = (id, urlDb) => {
   const usersUrlDb = {};
   const keys = Object.keys(urlDb);
-  for (const key of keys) {      
+  for (const key of keys) {
     if (urlDb[key].userID === id) {
       usersUrlDb[key] = urlDb[key];
     }
