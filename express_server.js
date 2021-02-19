@@ -22,7 +22,7 @@ const urlDatabase = {
 };
 
 const users = {
-  "aJ48lW": { id: "aJ48lW", email:"test@test.com", password: testHashedPw } 
+  "aJ48lW": { id: "aJ48lW", email:"test@test.com", password: testHashedPw }
 };
 
 // Converts all buffer data into sting in human readable form
@@ -30,7 +30,7 @@ app.use(bodyParser.urlencoded({extended: true})); // before all routes(get/post)
 app.use(cookieSession({
   name: 'session',
   keys: ['7f69fa85-caec-4xcc-acd7-eeb2ccb368d5', 's13b4b3m-41c8-47d3-93f6-8836do3cd8eb']
-}))
+}));
 
 // Register get handler
 app.get("/register", (req, res) => {
@@ -53,7 +53,7 @@ app.post("/register", (req, res) => {
       id: newUser.id,
       email: newUser.email,
       password: newUser.password
-    }
+    };
   }
   // console.log(users);
   req.session.userID = users[newUser.id].id;
@@ -99,7 +99,7 @@ app.get("/urls", (req, res) => {
   } else {
     const usersUrls = urlsForUser(userID, urlDatabase);
     templateVars.urls = usersUrls;
-  };
+  }
   res.render("urls_index", templateVars);
 });
 
@@ -131,7 +131,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const currentUser = req.session["userID"];
   if (!currentUser) {
-    return res.status(404).send("Error 404: Page not found! Please try logging in.")
+    return res.status(404).send("Error 404: Page not found! Please try logging in.");
   }
   const shortURL = req.params.shortURL;
   if (urlDatabase[shortURL].userID === currentUser) {
@@ -154,11 +154,11 @@ app.post("/urls/:shortURL", (req, res) => {
   if (!currentUser) {
     return res.status(403).send("Error 403: Forbidden");
   }
-  const shortURL = req.params.shortURL
+  const shortURL = req.params.shortURL;
   if (urlDatabase[shortURL].userID === currentUser) {
     urlDatabase[shortURL] =  { longURL: req.body.longURL, userID: currentUser };
   } else {
-    return res.status(404).send("Error 404: Page not found")
+    return res.status(404).send("Error 404: Page not found");
   }
   res.redirect("/urls");
 });
@@ -168,12 +168,12 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const currentUser = req.session["userID"];
   if (!currentUser) {
-    return res.status(403).send("Error 403: Forbidden")
+    return res.status(403).send("Error 403: Forbidden");
   }
   if (urlDatabase[req.params.shortURL].userID === currentUser) {
     delete urlDatabase[req.params.shortURL];
   } else {
-    return res.status(403).send("Error 403: Forbidden")
+    return res.status(403).send("Error 403: Forbidden");
   }
   res.redirect("/urls");
 });
@@ -193,7 +193,7 @@ app.get("/u/:shortURL", (req, res) => {
 // TEST CODE?
 // root/home page
 app.get("/", (req, res) => {
-  currentUser = req.session.userID;
+  const currentUser = req.session.userID;
   if (currentUser) {
     res.redirect("/urls");
   } else {
@@ -202,11 +202,11 @@ app.get("/", (req, res) => {
 });
 
 // ERROR 404 Handler
-app.use((req, res, next) => {
-  templateVars = {
+app.use((req, res) => {
+  const templateVars = {
     userID: req.session.userID,
     users
-  }
+  };
   res.status(404).render("error404", templateVars);
 });
 
