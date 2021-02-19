@@ -1,7 +1,6 @@
 const PORT = 8080;
 
 const bodyParser = require("body-parser");
-// const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const express = require("express");
 const bcrypt = require("bcrypt");
@@ -28,23 +27,10 @@ const users = {
 
 // Converts all buffer data into sting in human readable form
 app.use(bodyParser.urlencoded({extended: true})); // before all routes(get/post)
-// app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['7f69fa85-caec-4xcc-acd7-eeb2ccb368d5', 's13b4b3m-41c8-47d3-93f6-8836do3cd8eb']
 }))
-
-// Create middleware function - DO NOT USE THIS - req is not defined when called. - revisit if time remains
-// const getCurrentUser = (req, res, next) => {
-//   console.log(req)
-//   const userID = req.session["userID"];
-//   const loggedInUser = users[userID];
-//   req.currentUser = loggedInUser;
-//   next();
-// };
-
-// app.use(getCurrentUser());
-
 
 // Register get handler
 app.get("/register", (req, res) => {
@@ -112,7 +98,6 @@ app.get("/urls", (req, res) => {
     templateVars.urls = {};
   } else {
     const usersUrls = urlsForUser(userID, urlDatabase);
-    console.log(usersUrls);
     templateVars.urls = usersUrls;
   };
   res.render("urls_index", templateVars);
@@ -175,7 +160,6 @@ app.post("/urls/:shortURL", (req, res) => {
   } else {
     return res.status(404).send("Error 404: Page not found")
   }
-  console.log(urlDatabase);
   res.redirect("/urls");
 });
 
@@ -191,7 +175,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else {
     return res.status(403).send("Error 403: Forbidden")
   }
-  console.log(urlDatabase)
   res.redirect("/urls");
 });
 
@@ -218,16 +201,6 @@ app.get("/", (req, res) => {
   }
 });
 
-// // View JSON details from the "url database"
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// // Hello view test code
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
-
 // ERROR 404 Handler
 app.use((req, res, next) => {
   templateVars = {
@@ -241,5 +214,3 @@ app.use((req, res, next) => {
 app.listen(PORT, () => {
   console.log(`TinyApp server is listening on port ${PORT}`);
 });
-
-
