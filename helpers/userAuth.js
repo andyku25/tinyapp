@@ -1,18 +1,4 @@
 const bcrypt = require("bcrypt");
-// HELPERS
-// radix base 36
-const generateRandomString = () => {
-  let output = "";
-  for (let i = 0; i < 6; i++) {
-    let randomChar = Math.floor(Math.random() * 1000) % 36;
-    if (randomChar < 10) {
-      output += randomChar.toString(36);
-    } else {
-      output += Math.round((Math.random() * 10)) % 2 === 0 ? randomChar.toString(36).toUpperCase() : randomChar.toString(36);
-    }
-  }
-  return output;
-};
 
 // Check email account if they already exist list
 const validateRegistration = (email, password, usersDb) => {
@@ -49,7 +35,6 @@ const validateLogin = (email, password, usersDb) => {
 };
 
 module.exports = {
-  generateRandomString,
   validateRegistration,
   validateLogin
 };

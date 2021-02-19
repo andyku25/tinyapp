@@ -5,7 +5,8 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { generateRandomString, validateRegistration, validateLogin } = require("./helpers/userAuth");
+const { validateRegistration, validateLogin } = require("./helpers/userAuth");
+const { getUserByEmail, generateRandomString } = require("./helpers");
 // const urlsForUser = require("./helpers/urlsForUser");
 
 
@@ -37,22 +38,17 @@ app.use(cookieSession({
 }))
 
 
-// Create middleware function
-const getCurrentUser = (req, res, next) => {
-  console.log(req)
-  const userID = req.session["userID"];
-  const loggedInUser = users[userID];
-  req.currentUser = loggedInUser;
-  next();
-};
+// Create middleware function - DO NOT USE THIS - req is not defined when called. - revisit if time remains
+// const getCurrentUser = (req, res, next) => {
+//   console.log(req)
+//   const userID = req.session["userID"];
+//   const loggedInUser = users[userID];
+//   req.currentUser = loggedInUser;
+//   next();
+// };
 
-// DO NOT USE THIS - req is not defined
 // app.use(getCurrentUser());
 
-// root/home page
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
 
 // Register get handler
 app.get("/register", (req, res) => {
@@ -84,7 +80,8 @@ app.post("/register", (req, res) => {
     };
     
     console.log(users);
-    res.session.userID = users[id].id;
+    console.log(users[id]);
+    req.session.userID = users[id].id;
     res.redirect("/urls");
   }
 });
@@ -115,7 +112,7 @@ app.post("/login", (req, res) => {
 
 // LOGOUT POST handler
 app.post("/logout", (req, res) => {
-  res.clearCookie("userID");
+  req.session.userID = null;
   res.redirect("/urls");
 });
 
@@ -176,7 +173,7 @@ app.post("/urls/:shortURL", (req, res) => {
   const currentUser = req.session["userID"];
   const shortURL = req.params.shortURL
   if (urlDatabase[shortURL].userID === currentUser) {
-    urlDatabase[shortURL] =  { longURL:req.body.longURL, userID:req.session["userID"] };
+    urlDatabase[shortURL] =  { longURL:req.body.longURL, userID:currentUser };
   }
   console.log(urlDatabase);
   res.redirect("/urls");
@@ -207,6 +204,16 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 // TEST CODE?
+// root/home page
+app.get("/", (req, res) => {
+  currentUser = req.session.userID;
+  if (currentUser) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
+
 // // View JSON details from the "url database"
 // app.get("/urls.json", (req, res) => {
 //   res.json(urlDatabase);
@@ -228,7 +235,7 @@ app.use((req, res, next) => {
 
 // Activate server to listen for requests
 app.listen(PORT, () => {
-  console.log(`Example app is listening on port ${PORT}`);
+  console.log(`TinyApp server is listening on port ${PORT}`);
 });
 
 
