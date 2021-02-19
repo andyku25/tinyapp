@@ -34,11 +34,15 @@ app.use(cookieSession({
 
 // Register get handler
 app.get("/register", (req, res) => {
-  const templateVars = {
-    userID: req.session["userID"],
-    users
-  };
-  res.render("register", templateVars);
+  const currentUser = req.session.userID;
+  if (!currentUser) {
+    const templateVars = {
+      userID: currentUser,
+      users
+    };
+    return res.render("register", templateVars);
+  }
+  res.redirect("/urls");
 });
 
 // Register Post handler
@@ -62,11 +66,15 @@ app.post("/register", (req, res) => {
 
 // LOGIN GET handler
 app.get("/login", (req, res) => {
-  const templateVars = {
-    userID: req.session["userID"],
-    users
-  };
-  res.render("login", templateVars);
+  const currentUser = req.session.userID;
+  if (!currentUser) {
+    const templateVars = {
+      userID: currentUser,
+      users
+    };
+    res.render("login", templateVars);
+  }
+  res.redirect("/urls");
 });
 
 // LOGIN POST handler
