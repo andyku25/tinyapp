@@ -35,6 +35,7 @@ app.use(cookieSession({
 // Register get handler
 app.get("/register", (req, res) => {
   const currentUser = req.session.userID;
+
   if (!currentUser) {
     const templateVars = {
       userID: currentUser,
@@ -42,6 +43,7 @@ app.get("/register", (req, res) => {
     };
     return res.render("register", templateVars);
   }
+
   res.redirect("/urls");
 });
 
@@ -59,7 +61,7 @@ app.post("/register", (req, res) => {
       password: newUser.password
     };
   }
-  // console.log(users);
+
   req.session.userID = users[newUser.id].id;
   res.redirect("/urls");
 });
@@ -67,6 +69,7 @@ app.post("/register", (req, res) => {
 // LOGIN GET handler
 app.get("/login", (req, res) => {
   const currentUser = req.session.userID;
+
   if (!currentUser) {
     const templateVars = {
       userID: currentUser,
@@ -74,6 +77,7 @@ app.get("/login", (req, res) => {
     };
     res.render("login", templateVars);
   }
+  
   res.redirect("/urls");
 });
 
@@ -85,6 +89,7 @@ app.post("/login", (req, res) => {
   if (!currentUser.id) {
     return res.status(403).send(`Error 403: ${currentUser.error}`);
   }
+
   req.session.userID = currentUser.id;
   res.redirect("/urls");
 });
@@ -102,21 +107,25 @@ app.get("/urls", (req, res) => {
     userID: currentUser,
     users,
   };
+
   if (!currentUser) {
     templateVars.urls = {};
   } else {
     const usersUrls = urlsForUser(currentUser, urlDatabase);
     templateVars.urls = usersUrls;
   }
+
   res.render("urls_index", templateVars);
 });
 
 // Create new TinyURL
 app.get("/urls/new", (req, res) => {
   const currentUser = req.session.userID;
+
   if (!currentUser) {
     return res.redirect("/login");
   }
+
   const templateVars = {
     userID: currentUser,
     users
@@ -127,21 +136,30 @@ app.get("/urls/new", (req, res) => {
 // POST handler for urls/
 app.post("/urls", (req, res) => {
   const currentUser = req.session.userID;
+
   if (!currentUser) {
     return res.status(500).send("Error 500: Bad Request! Please login!");
   }
+
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = { longURL: req.body.longURL, userID: currentUser };
-  res.redirect(`/urls`);
+  res.redirect(`/urls/${shortURL}`);
 });
 
 // View the selected short URL details
 app.get("/urls/:shortURL", (req, res) => {
   const currentUser = req.session.userID;
-  if (!currentUser) {
-    return res.status(404).send("Error 404: Page not found! Please try logging in.");
-  }
   const shortURL = req.params.shortURL;
+
+  if (!currentUser || !urlDatabase[shortURL]) {
+    return res.status(404).send("Error 404: Page not found!");
+  }
+  
+  // Handling longurl pages that dont exist
+  // console.log(urlDatabase);
+  // console.log(shortURL);
+  // console.log(urlDatabase[shortURL]);
+
   if (urlDatabase[shortURL].userID === currentUser) {
     const templateVars = {
       userID: currentUser,
@@ -159,15 +177,18 @@ app.get("/urls/:shortURL", (req, res) => {
 // UPDATE the short URL details
 app.post("/urls/:shortURL", (req, res) => {
   const currentUser = req.session.userID;
+  const shortURL = req.params.shortURL;
+
   if (!currentUser) {
     return res.status(403).send("Error 403: Forbidden");
   }
-  const shortURL = req.params.shortURL;
+
   if (urlDatabase[shortURL].userID === currentUser) {
     urlDatabase[shortURL] =  { longURL: req.body.longURL, userID: currentUser };
   } else {
     return res.status(404).send("Error 404: Page not found");
   }
+
   res.redirect("/urls");
 });
 
@@ -175,14 +196,17 @@ app.post("/urls/:shortURL", (req, res) => {
 // DELETE btn post method redirect to index page "/urls"
 app.post("/urls/:shortURL/delete", (req, res) => {
   const currentUser = req.session.userID;
+
   if (!currentUser) {
     return res.status(403).send("Error 403: Forbidden");
   }
+
   if (urlDatabase[req.params.shortURL].userID === currentUser) {
     delete urlDatabase[req.params.shortURL];
   } else {
     return res.status(403).send("Error 403: Forbidden");
   }
+
   res.redirect("/urls");
 });
 
@@ -190,6 +214,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // View the selected short URL details
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
+
   if (longURL === undefined) {
     res.status(404);
     return res.render("error404");
@@ -198,10 +223,10 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-// TEST CODE?
 // root/home page
 app.get("/", (req, res) => {
   const currentUser = req.session.userID;
+
   if (!currentUser) {
     res.redirect("/login");
   } else {

@@ -37,10 +37,9 @@ const validateNewUser = (email, password, userDb) => {
 
 // Check if login credentials are validateUser. returns object { user_id, errorMsg }
 const validateLogin = (email, password, usersDb) => {
-  
   const userID = getUserByEmail(email, usersDb);
-
   const user = usersDb[userID];
+  
   if (user) {
     if (bcrypt.compareSync(password, user.password)) {
       return { id: user.id, email: user.email, password: user.password };
